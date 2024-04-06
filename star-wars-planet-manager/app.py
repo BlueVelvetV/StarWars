@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import requests
+from models import Planet
+from planetsdb import Planet
+import swapi
+
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///planets.db'
@@ -105,6 +110,13 @@ def search_planets():
         return jsonify({'planets': output})
     else:
         return jsonify({'message': 'No planets found matching the search criteria'})
+
+def populate_database():
+    # Code to fetch and populate planets from API
+
+@app.before_first_request
+def startup():
+    populate_database()
 
 if __name__ == '__main__':
     app.run(debug=True)

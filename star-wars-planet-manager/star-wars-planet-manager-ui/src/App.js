@@ -22,8 +22,8 @@ function App() {
           <li key={planet.id}>
             <strong>Name:</strong> {planet.name}<br />
             <strong>Diameter:</strong> {planet.diameter}<br />
-            <strong>Climate:</strong> {planet.climate}<br />
-            <strong>Terrain:</strong> {planet.terrain}<br />
+            <strong>Climate:</strong> {planet.climates}<br />
+            <strong>Terrain:</strong> {planet.terrains}<br />
             <strong>Population:</strong> {planet.population}
           </li>
         ))}
