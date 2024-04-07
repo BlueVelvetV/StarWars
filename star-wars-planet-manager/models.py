@@ -1,56 +1,35 @@
-import requests
-from sqlalchemy import Column, Integer, String, JSON
-from sqlalchemy.ext.declarative import declarative_base
+from flask_sqlalchemy import SQLAlchemy
 
-Base = declarative_base()
+db = SQLAlchemy()
 
-class Planet(Base):
+class Planet(db.Model):
     __tablename__ = 'planets'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    diameter = Column(Integer)
-    climate = Column(String)
-    terrain = Column(String)
-    population = Column(Integer)
-    residents = Column(JSON)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True, nullable=False)
+    diameter = db.Column(db.Integer, nullable=False)
+    climate = db.Column(db.String, nullable=False)
+    terrain = db.Column(db.String, nullable=False)
+    population = db.Column(db.Integer, nullable=False)
+    residents = db.Column(db.JSON)
 
     def __repr__(self):
         return f'<Planet {self.name}>'
 
-def fetch_planets():
-    graphql_query = """
-    query {
-        allPlanets {
-          planets {
-            name
-            diameter
-            climates
-            terrains
-            population
-          }
-        }
-    }
-    """
-    response = requests.post('https://swapi-graphql.netlify.app/.netlify/functions/index', json={'query': graphql_query})
-    if response.status_code == 200:
-        data = response.json()['data']['allPlanets']['planets']
-        return data
-    else:
-        return None
 
-# Assuming you have initialized your SQLAlchemy session as `db_session`
-planets_data = fetch_planets()
-if planets_data:
-    for planet_data in planets_data:
-        new_planet = Planet(
-            name=planet_data['name'],
-            diameter=planet_data['diameter'],
-            climate=planet_data['climate'],
-            terrain=planet_data['terrain'],
-            population=planet_data['population']
-        )
-        db_session.add(new_planet)
-    db_session.commit()
-else:
-    print("Failed to fetch planets from the API.")
+"""from flask_sqlalchemy.model import Model
+
+class Planet(Model):
+    __tablename__ = 'planets'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), unique=True, nullable=False)
+    diameter = Column(Integer, nullable=False)
+    climate = Column(String(100), nullable=False)
+    terrain = Column(String(100), nullable=False)
+    population = Column(Integer, nullable=False)
+    residents = Column(JSON)
+
+    def __repr__(self):
+        return f'<Planet {self.name}>'
+"""

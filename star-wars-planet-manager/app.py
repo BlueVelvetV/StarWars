@@ -1,29 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import requests
+from fill_db import populate_database
 from models import Planet
-from planetsdb import Planet
-import swapi
-
-
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///planets.db'
 db = SQLAlchemy(app)
 
-SWAPI_BASE_URL = "https://swapi.dev/api"
-
-class Planet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    diameter = db.Column(db.Integer, nullable=False)
-    climate = db.Column(db.String(100), nullable=False)
-    terrain = db.Column(db.String(100), nullable=False)
-    population = db.Column(db.Integer, nullable=False)
-    residents = db.Column(db.JSON)
-
-    def __repr__(self):
-        return f'<Planet {self.name}>'
 
 @app.route('/planet/<int:planet_id>', methods=['GET'])
 def get_planet(planet_id):
@@ -38,7 +22,7 @@ def get_planet(planet_id):
             'population': planet.population,
             'residents': []
         }
-        
+
         # Fetch residents from Star Wars API
         for resident_url in planet.residents:
             resident_response = requests.get(resident_url)
@@ -49,10 +33,11 @@ def get_planet(planet_id):
                     'height': resident_data['height'],
                     'gender': resident_data['gender']
                 })
-        
+
         return jsonify(planet_data)
     else:
         return jsonify({'message': 'Planet not found'}), 404
+
 
 @app.route('/planet', methods=['POST'])
 def add_planet():
@@ -69,6 +54,7 @@ def add_planet():
     db.session.commit()
     return jsonify({'message': 'Planet added successfully'}), 201
 
+
 @app.route('/planet/<int:planet_id>', methods=['PUT'])
 def edit_planet(planet_id):
     planet = Planet.query.get(planet_id)
@@ -84,6 +70,7 @@ def edit_planet(planet_id):
     else:
         return jsonify({'message': 'Planet not found'}), 404
 
+
 @app.route('/planet/<int:planet_id>', methods=['DELETE'])
 def delete_planet(planet_id):
     planet = Planet.query.get(planet_id)
@@ -93,6 +80,7 @@ def delete_planet(planet_id):
         return jsonify({'message': 'Planet deleted successfully'})
     else:
         return jsonify({'message': 'Planet not found'}), 404
+
 
 @app.route('/planets/search', methods=['GET'])
 def search_planets():
@@ -105,18 +93,16 @@ def search_planets():
     if planets:
         output = []
         for planet in planets:
-            planet_data = {'id': planet.id, 'name': planet.name, 'diameter': planet.diameter, 'climate': planet.climate, 'terrain': planet.terrain, 'population': planet.population}
+            planet_data = {'id': planet.id, 'name': planet.name, 'diameter': planet.diameter, 'climate': planet.climate,
+                           'terrain': planet.terrain, 'population': planet.population}
             output.append(planet_data)
         return jsonify({'planets': output})
     else:
         return jsonify({'message': 'No planets found matching the search criteria'})
 
-def populate_database():
-    # Code to fetch and populate planets from API
 
-@app.before_first_request
-def startup():
-    populate_database()
+with app.app_context():
+    populate_database(db)
 
 if __name__ == '__main__':
     app.run(debug=True)
