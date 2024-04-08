@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
 import requests
+from sqlalchemy import select
 
 DATABASE_URL = 'sqlite:///planets.db'
 app = Flask(__name__)
@@ -11,9 +12,17 @@ db = SQLAlchemy(app)
 
 @app.route('/planets', methods=['GET'])
 def get_all_planets():
-    res = Planet.query.all()
-    print(res)
-    return jsonify(res)
+    planets = Planet.query.all()
+    #db.session.execute(select(Planet)).all()
+
+    planet_dict = []
+    for pl in planets:
+        pl_dict=pl.__dict__
+        pl_dict.pop('_sa_instance_state', None)
+        planet_dict.append(pl_dict)
+
+    print(planet_dict)
+    return jsonify(planet_dict)
 
 
 @app.route('/planet/<int:planet_id>', methods=['GET'])

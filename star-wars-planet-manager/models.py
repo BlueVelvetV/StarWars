@@ -1,4 +1,5 @@
 from flask import g
+
 # class Planet(Base):
 #     __tablename__ = 'planets'
 #
@@ -13,6 +14,8 @@ from flask import g
 #
 
 db = g.db
+
+
 # Define the SQLAlchemy model for the 'planets' table
 class Planet(db.Model):
     __tablename__ = 'planets'
@@ -32,13 +35,13 @@ class Planet(db.Model):
             'population': self.population
         }
 
+
 class Climate(db.Model):
     __tablename__ = 'climates'
 
     id = db.Column(db.Integer, primary_key=True)
     planet_name = db.Column(db.String, nullable=False)
     name = db.Column(db.String)
-
 
 class Terrain(db.Model):
     __tablename__ = 'terrains'
