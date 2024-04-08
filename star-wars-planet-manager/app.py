@@ -1,17 +1,20 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
 import requests
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 
+DATABASE_URL = 'sqlite:///planets.db'
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///planets.db'
-engine = create_engine('sqlite:///planets.db', echo = True)
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 db = SQLAlchemy(app)
-Base = declarative_base()
+
+# Configure SQLAlchemy engine
+
+@app.route('/planets', methods=['GET'])
+def get_all_planets():
+    res = Planet.query.all()
+    print(res)
+    return jsonify(res)
+
 
 @app.route('/planet/<int:planet_id>', methods=['GET'])
 def get_planet(planet_id):
@@ -84,6 +87,10 @@ def delete_planet(planet_id):
         return jsonify({'message': 'Planet not found'}), 404
 
 
+class Planet:
+    pass
+
+
 @app.route('/planets/search', methods=['GET'])
 def search_planets():
     query = request.args.get('query')
@@ -102,19 +109,24 @@ def search_planets():
     else:
         return jsonify({'message': 'No planets found matching the search criteria'})
 
+
+
+
+
+"""
 def fetch_planets():
-    graphql_query = """
-    query {
-        allPlanets {
-          planets {
+    graphql_query = "
+        query {
+            allPlanets {
+            planets {
             name
-            diameter
-            climates
-            terrains
-            population
-          }
+        diameter
+        climates
+        terrains
+        population
         }
-    }"""
+        }
+        }"
     response = requests.post('https://swapi-graphql.netlify.app/.netlify/functions/index',
                             json={'query': graphql_query})
     if response.status_code == 200:
@@ -123,48 +135,12 @@ def fetch_planets():
             return data
     else:
             return None
-
-# Configure SQLAlchemy engine
-DATABASE_URL = 'sqlite:///planets.db'  # Replace 'planets.db' with your database file
-engine = create_engine(DATABASE_URL)
-
-
-# Define the SQLAlchemy model for the 'planets' table
-class Planet(Base):
-    __tablename__ = 'planets'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    diameter = Column(Integer)
-    population = Column(Integer)
-
-class Climate(Base):
-    __tablename__ = 'climates'
-
-    id = Column(Integer, primary_key=True)
-    planet_name = Column(String, nullable=False)
-    name = Column(String)
-
-class Terrain(Base):
-    __tablename__ = 'terrains'
-
-    id = Column(Integer, primary_key=True)
-    planet_name = Column(String, nullable=False)
-    name = Column(String)
-
-# Create tables in the database
-Base.metadata.create_all(engine)
-
-# Create a session to interact with the database
-Session = sessionmaker(bind=engine)
-session = Session()
-
-def populate_database(db: SQLAlchemy):
+            
+def populate_database(session):
     planets_data = fetch_planets()
     #print('PLANETS_DATA: ', planets_data)
     
     if planets_data:
-
         for planet_data in planets_data:
             new_planet = Planet(
                 name=planet_data['name'],
@@ -183,14 +159,14 @@ def populate_database(db: SQLAlchemy):
             if len(planet_data['climates']) > 1:
                 print('ENTRA 2', planet_data['climates'][1])
                 new_climate2 = Climate (
-                    parent_name = planet_data['name'],
+                    planet_name = planet_data['name'],
                     name = planet_data['climates'][1]
                 ) 
                 session.add(new_climate2,)
             if len(planet_data['climates']) > 2:
                 print('ENTRA 3', planet_data['climates'][2])
                 new_climate3 = Climate (
-                    parent_name = planet_data['name'],
+                    planet_name = planet_data['name'],
                     name = planet_data['climates'][2]
                 ) 
                 session.add(new_climate3)
@@ -200,9 +176,17 @@ def populate_database(db: SQLAlchemy):
             session.commit() 
     else:
         print("Failed to fetch planets from the API.")
+"""
+with app.app_context():
+    g.db = db
+    # Create tables in the database
+    from models import Planet, Climate, Terrain
+    db.create_all()
 
-# Run the Flask application
+    from fill_db import populate_database
+    populate_database(db)
+
 if __name__ == '__main__':
-    populate_database(engine)
-    #app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
+
 

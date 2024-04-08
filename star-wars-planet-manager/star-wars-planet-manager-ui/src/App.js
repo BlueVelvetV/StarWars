@@ -5,7 +5,7 @@ function App() {
   const [planets, setPlanets] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/planet')
+    axios.get('http://localhost:5000/planets')
       .then(response => {
         setPlanets(response.data.planets);
       })
