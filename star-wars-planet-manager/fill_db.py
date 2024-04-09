@@ -44,7 +44,6 @@ def populate_database(db):
         session.add(new_terrain)
 
     planets_data = fetch_planets()
-    # print('PLANETS_DATA: ', planets_data)
 
     if planets_data:
         for planet_data in planets_data:
@@ -53,7 +52,6 @@ def populate_database(db):
                 diameter=planet_data['diameter'],
                 population=planet_data['population']
             )
-            print('Pianeta :', planet_data['name'])
             session.add(new_planet)
 
             climates = planet_data['climates']
@@ -61,7 +59,6 @@ def populate_database(db):
             terrains = planet_data['terrains']
             [terrain_fun(planet_data['name'], x) for x in terrains]
 
-            # print('NEW PLANET: ', new_climate1)
             session.commit()
     else:
         print("Failed to fetch planets from the API.")

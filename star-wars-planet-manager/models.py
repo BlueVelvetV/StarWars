@@ -1,20 +1,5 @@
 from flask import g
-
-# class Planet(Base):
-#     __tablename__ = 'planets'
-#
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String, unique=True, nullable=False)
-#     diameter = Column(Integer, nullable=True)
-#     population =  Column(Integer, nullable=True)
-#
-#     def __repr__(self):
-#         return f"Planet(name={self.name}, diameter={self.diameter}, population={self.population})"
-#
-#
-
 db = g.db
-
 
 # Define the SQLAlchemy model for the 'planets' table
 class Planet(db.Model):
@@ -40,12 +25,12 @@ class Climate(db.Model):
     __tablename__ = 'climates'
 
     id = db.Column(db.Integer, primary_key=True)
-    planet_name = db.Column(db.String, nullable=False)
+    planet_name = db.Column(db.String, db.ForeignKey('planets.name'), nullable=False)
     name = db.Column(db.String)
 
 class Terrain(db.Model):
     __tablename__ = 'terrains'
 
     id = db.Column(db.Integer, primary_key=True)
-    planet_name = db.Column(db.String, nullable=False)
+    planet_name = db.Column(db.String, db.ForeignKey('planets.name'), nullable=False)
     name = db.Column(db.String)
